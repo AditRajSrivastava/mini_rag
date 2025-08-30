@@ -1,0 +1,34 @@
+# --- Secrets ---
+# Ignore the environment file containing your secret API keys.
+# This is the most important line in this file.
+.env
+
+# --- Python ---
+# Ignore the Python virtual environment folder.
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore build and distribution artifacts (good practice).
+build/
+dist/
+*.egg-info/
+
+# Ignore testing artifacts.
+.pytest_cache/
+.coverage
+
+# --- OS / Editor specific ---
+# Ignore macOS specific files.
+.DS_Store
+
+# Ignore Windows specific files.
+Thumbs.db
+
+# Ignore common IDE/editor configuration folders.
+.vscode/
+.idea/
+*.suo
+*.user

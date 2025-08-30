@@ -1,0 +1,197 @@
+/* --- General Setup & Body --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.main-container {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* --- Header --- */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeInDown 1s ease-out;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+header p {
+    font-size: 1.1rem;
+    color: #a0a0a0;
+}
+
+/* --- Card Styling --- */
+.card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 1s ease-out;
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Input Fields & Text Area --- */
+textarea, input[type="text"] {
+    width: 100%;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1rem;
+    color: #e0e0e0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box; /* Important for padding */
+    transition: all 0.3s ease;
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+textarea:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Button Styling & Animations --- */
+button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button:hover {
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* --- Results Section --- */
+.results-card {
+    border-color: #007bff;
+    animation: fadeIn 0.5s ease-out;
+}
+
+#answer {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    background-color: rgba(0, 123, 255, 0.1);
+    padding: 1rem;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+#sources ul {
+    list-style: none;
+    padding: 0;
+}
+
+#sources li {
+    background-color: #2a2a2a;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #444;
+    font-size: 0.9rem;
+    color: #c0c0c0;
+}
+
+#sources li strong {
+    color: #007bff;
+    margin-right: 0.5rem;
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- Status Messages & Loaders --- */
+.status-message {
+    text-align: center;
+    margin-top: 1rem;
+    color: #a0a0a0;
+    min-height: 1.2em; /* Prevents layout shift */
+}
+
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: none; /* Hidden by default */
+    animation: spin 1s linear infinite;
+}
+
+button.loading .loader {
+    display: block;
+}
+
+button.loading .btn-text {
+    display: none;
+}
+
+/* --- Keyframe Animations --- */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

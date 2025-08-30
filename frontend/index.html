@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Query Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>AI Document Query Engine</h1>
+            <p>Your personal AI assistant for document analysis</p>
+        </header>
+
+        <div class="card">
+            <h2>1. Ingest Document</h2>
+            <textarea id="context-text" placeholder="Paste the full text of your document here..."></textarea>
+            <button id="upload-btn">
+                <span class="btn-text">Upload & Embed</span>
+                <span class="loader" id="upload-loader"></span>
+            </button>
+            <p id="upload-status" class="status-message"></p>
+        </div>
+
+        <div class="card">
+            <h2>2. Ask a Question</h2>
+            <input type="text" id="query-input" placeholder="e.g., What is the main conclusion?">
+            <button id="query-btn">
+                <span class="btn-text">Query AI</span>
+                 <span class="loader" id="query-loader"></span>
+            </button>
+        </div>
+
+        <div id="results-container" class="card results-card hidden">
+            <h2>Results</h2>
+            <div id="answer"></div>
+            <h3>Cited Sources</h3>
+            <div id="sources"></div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
