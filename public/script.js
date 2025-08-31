@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURATION ---
-    // TODO: Replace this with your DEPLOYED backend URL from Render.
-    const API_BASE_URL = "https://mini-rag-y8lh.onrender.com"; // Use this for local testing
+    const API_BASE_URL = "https://mini-rag-y8lh.onrender.com";
 
     // --- DOM ELEMENT REFERENCES ---
     const uploadBtn = document.getElementById('upload-btn');
@@ -58,12 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ text: text })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            const result = await response.json();
+
+            if (result.error || !response.ok) {
+                throw new Error(result.error || `HTTP error! Status: ${response.status}`);
             }
 
-            const result = await response.json();
             uploadStatus.textContent = result.message;
             uploadStatus.style.color = '#2ecc71'; // Green for success
         } catch (error) {
@@ -84,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         toggleButtonLoading(queryBtn, true);
-        resultsContainer.classList.add('hidden'); // Hide old results
+        resultsContainer.classList.add('hidden');
         answerDiv.textContent = '';
         sourcesDiv.innerHTML = '';
 
@@ -95,16 +94,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ question: question })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-            }
-
             const result = await response.json();
+
+            // +++ THIS IS THE FIX +++
+            // Check if the backend returned its own error message in the JSON body.
+            if (result.error) {
+                // If it did, throw an error so our catch block can handle it.
+                throw new Error(result.error);
+            }
+            
+            // Also check for general HTTP errors.
+            if (!response.ok) {
+                 throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            // +++++++++++++++++++++++
+
             displayResults(result);
 
         } catch (error) {
             console.error('Query Error:', error);
+            // This will now display the REAL error from the backend.
             answerDiv.textContent = `Error getting answer: ${error.message}`;
             resultsContainer.classList.remove('hidden');
         } finally {
@@ -117,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {object} result - The result object from the API.
      */
     const displayResults = (result) => {
-        // Sanitize and format the answer to handle citations like [1]
+        // This code is now safe because it will only run on a successful response.
         let formattedAnswer = result.answer.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         formattedAnswer = formattedAnswer.replace(/\[(\d+)\]/g, '<strong>[$1]</strong>');
         
