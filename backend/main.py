@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from qdrant_client import QdrantClient
+
 # LangChain Imports
 from langchain_cohere import CohereEmbeddings
 from langchain_community.vectorstores import Qdrant
@@ -13,6 +14,7 @@ from langchain.docstore.document import Document
 from langchain.prompts import ChatPromptTemplate
 from langchain_cohere import CohereRerank
 from langchain_groq import ChatGroq
+
 # --- INITIAL SETUP ---
 
 # Load environment variables from .env file
@@ -22,13 +24,10 @@ load_dotenv()
 app = FastAPI()
 
 # --- CORS MIDDLEWARE ---
-# This allows your frontend (running on a different domain) to communicate with this backend.
-# IMPORTANT: Replace "http://localhost:5500" and "http://127.0.0.1:5500" with the URL of your deployed frontend in production.
 origins = [
     "http://localhost:5500",    # For local development with Live Server
     "http://127.0.0.1:5500",   # For local development
-    "https://mini-rag-sepia.vercel.app/"
-    "https://mini-rag-sepia.vercel.app" # TODO: Add your deployed frontend URL here
+    "https://mini-rag-sepia.vercel.app" # The correct URL for your Vercel site
 ]
 
 app.add_middleware(
@@ -44,7 +43,6 @@ QDRANT_COLLECTION_NAME = "my_rag_collection_cohere"
 
 
 # --- PYDANTIC MODELS ---
-# These models define the expected request body structure for your endpoints.
 class UploadData(BaseModel):
     text: str
 
@@ -72,11 +70,10 @@ async def upload(data: UploadData):
         # 2. Create LangChain Document objects with metadata
         documents = [Document(page_content=chunk, metadata={"position": i + 1}) for i, chunk in enumerate(chunks)]
 
-        # 3. Initialize OpenAI Embeddings
+        # 3. Initialize Cohere Embeddings
         embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
+        
         # 4. Upsert documents to Qdrant
-        # This will create the collection if it doesn't exist, embed the documents, and store them.
-        # NOTE: For `text-embedding-3-small`, the vector dimension is 1536.
         Qdrant.from_documents(
             documents,
             embeddings,
@@ -89,7 +86,6 @@ async def upload(data: UploadData):
         return {"message": f"Successfully uploaded {len(documents)} chunks."}
 
     except Exception as e:
-        # Return a more informative error message
         return {"error": f"An error occurred during upload: {str(e)}"}, 500
 
 
@@ -99,11 +95,10 @@ async def query(data: QueryData):
     Endpoint for querying the RAG pipeline.
     """
     try:
-        # 1. Initialize Clients
+        # Initialize Clients
         embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
         llm = ChatGroq(groq_api_key=os.getenv("GROQ_API_KEY"), model_name="llama3-8b-8192", temperature=0)
         
-        # Connect to the existing Qdrant collection
         # 1. First, create a direct client connection to Qdrant
         client = QdrantClient(
             url=os.getenv("QDRANT_URL"),
@@ -113,19 +108,19 @@ async def query(data: QueryData):
         # 2. Then, use that client to initialize the LangChain vector store
         vector_store = Qdrant(
             client=client,
-            collection_name=QDRANT_COLLECTION_NAME,
+            collection_name=QDRANT_COLlection_NAME,
             embeddings=embeddings,
         )
         
-        # 2. Top-k Retrieval from Qdrant
+        # 3. Top-k Retrieval from Qdrant
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 10})
         retrieved_docs = retriever.get_relevant_documents(data.question)
 
-        # 3. Apply Cohere Reranker
+        # 4. Apply Cohere Reranker
         reranker = CohereRerank(cohere_api_key=os.getenv("COHERE_API_KEY"), model="rerank-english-v3.0", top_n=3)
         reranked_docs = reranker.compress_documents(documents=retrieved_docs, query=data.question)
         
-        # 4. Generation with OpenAI LLM
+        # 5. Generation with LLM
         context_text = "\n\n".join([f"[{doc.metadata['position']}] {doc.page_content}" for doc in reranked_docs])
         
         prompt_template = """
@@ -157,7 +152,7 @@ async def query(data: QueryData):
             "question": data.question
         })
         
-        # 5. Format and return the response
+        # 6. Format and return the response
         source_documents = [{"content": doc.page_content, "position": doc.metadata['position']} for doc in reranked_docs]
         
         return {"answer": response_llm.content, "sources": source_documents}
