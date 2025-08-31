@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURATION ---
     // TODO: Replace this with your DEPLOYED backend URL from Render.
-    const API_BASE_URL = "http://127.0.0.1:8000"; // Use this for local testing
+    const API_BASE_URL = "https://mini-rag-y8lh.onrender.com"; // Use this for local testing
 
     // --- DOM ELEMENT REFERENCES ---
     const uploadBtn = document.getElementById('upload-btn');
