@@ -25,9 +25,9 @@ app = FastAPI()
 
 # --- CORS MIDDLEWARE ---
 origins = [
-    "http://localhost:5500",    # For local development with Live Server
-    "http://127.0.0.1:5500",   # For local development
-    "https://mini-rag-sepia.vercel.app" # The correct URL for your Vercel site
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://mini-rag-sepia.vercel.app"
 ]
 
 app.add_middleware(
@@ -63,28 +63,21 @@ async def upload(data: UploadData):
     Endpoint for uploading, chunking, embedding, and storing text in the vector database.
     """
     try:
-        # 1. Chunking
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
         chunks = text_splitter.split_text(data.text)
-
-        # 2. Create LangChain Document objects with metadata
         documents = [Document(page_content=chunk, metadata={"position": i + 1}) for i, chunk in enumerate(chunks)]
-
-        # 3. Initialize Cohere Embeddings
         embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
         
-        # 4. Upsert documents to Qdrant
         Qdrant.from_documents(
             documents,
             embeddings,
             url=os.getenv("QDRANT_URL"),
             api_key=os.getenv("QDRANT_API_KEY"),
             collection_name=QDRANT_COLLECTION_NAME,
-            force_recreate=True,  # Set to True for development to start with a fresh DB each time.
+            force_recreate=True,
         )
         
         return {"message": f"Successfully uploaded {len(documents)} chunks."}
-
     except Exception as e:
         return {"error": f"An error occurred during upload: {str(e)}"}, 500
 
@@ -95,64 +88,49 @@ async def query(data: QueryData):
     Endpoint for querying the RAG pipeline.
     """
     try:
-        # Initialize Clients
         embeddings = CohereEmbeddings(cohere_api_key=os.getenv("COHERE_API_KEY"), model="embed-english-v3.0")
         llm = ChatGroq(groq_api_key=os.getenv("GROQ_API_KEY"), model_name="llama3-8b-8192", temperature=0)
         
-        # 1. First, create a direct client connection to Qdrant
         client = QdrantClient(
             url=os.getenv("QDRANT_URL"),
             api_key=os.getenv("QDRANT_API_KEY"),
         )
 
-        # 2. Then, use that client to initialize the LangChain vector store
         vector_store = Qdrant(
             client=client,
-            collection_name=QDRANT_COLlection_NAME,
+            # +++ THIS WAS THE FIX: Corrected the typo in the variable name below +++
+            collection_name=QDRANT_COLLECTION_NAME,
             embeddings=embeddings,
         )
         
-        # 3. Top-k Retrieval from Qdrant
         retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 10})
         retrieved_docs = retriever.get_relevant_documents(data.question)
 
-        # 4. Apply Cohere Reranker
         reranker = CohereRerank(cohere_api_key=os.getenv("COHERE_API_KEY"), model="rerank-english-v3.0", top_n=3)
         reranked_docs = reranker.compress_documents(documents=retrieved_docs, query=data.question)
         
-        # 5. Generation with LLM
         context_text = "\n\n".join([f"[{doc.metadata['position']}] {doc.page_content}" for doc in reranked_docs])
         
         prompt_template = """
         You are an expert question-answering assistant. Your task is to answer the user's question based ONLY on the provided context.
-        
         Here is the context, with each snippet numbered for citation:
         ---
         {context}
         ---
-        
         Here is the user's question:
         {question}
-        
         Instructions:
         1. Carefully read the context and the question.
         2. Formulate a clear and concise answer.
         3. If the context does not contain the information needed to answer the question, you MUST say "I do not have enough information to answer this question."
         4. For every piece of information you use in your answer, you MUST cite the corresponding source number(s) in brackets, like [1], [2], etc.
-        
         Answer:
         """
         
         prompt = ChatPromptTemplate.from_template(prompt_template)
-        
         chain = prompt | llm
+        response_llm = chain.invoke({"context": context_text, "question": data.question})
         
-        response_llm = chain.invoke({
-            "context": context_text,
-            "question": data.question
-        })
-        
-        # 6. Format and return the response
         source_documents = [{"content": doc.page_content, "position": doc.metadata['position']} for doc in reranked_docs]
         
         return {"answer": response_llm.content, "sources": source_documents}
