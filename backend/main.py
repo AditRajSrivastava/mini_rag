@@ -27,7 +27,7 @@ app = FastAPI()
 origins = [
     "http://localhost:5500",    # For local development with Live Server
     "http://127.0.0.1:5500",   # For local development
-    # "https://your-deployed-frontend-url.com" # TODO: Add your deployed frontend URL here
+    "https://mini-rag-sepia.vercel.app/" # TODO: Add your deployed frontend URL here
 ]
 
 app.add_middleware(
